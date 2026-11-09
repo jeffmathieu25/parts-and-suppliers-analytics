@@ -1,107 +1,177 @@
 # Parts and Suppliers
+
 ### Procurement costs, supplier performance and purchasing opportunities
 
 **SQL · Python · Pandas · NumPy · SQLite · Power BI · DAX**
 
-A collaborative academic analytics project translating purchasing records and supplier quotes into a four-page decision-support report.
+A collaborative academic analytics project combining procurement data, supplier performance indicators and visual reporting to support purchasing decisions.
 
 ![Executive purchasing overview](assets/01_executive_overview.png)
 
-## Business problem
+## Project overview
 
-Procurement teams need to understand where spending is concentrated, which suppliers combine reliable delivery with acceptable quality, and which parts offer negotiation opportunities or expose the organization to limited supplier coverage. This project brings those questions into one analytical workflow.
+Procurement decisions require a balanced understanding of cost, delivery reliability, product quality and supplier availability. This project integrates these dimensions into an analytical workflow that identifies spending patterns, purchasing opportunities and areas requiring closer supplier management.
 
-The dataset is **synthetic**, created for academic demonstration. It does not describe an actual company's procurement operations.
+Developed as a collaborative academic project for **TOTI · Class 59 · Group 05**, the analysis uses a **synthetic procurement dataset** comprising 100 parts across eight categories, 10 suppliers, 394 supplier quotes and 2,500 purchase orders covering January 2025 through September 2026.
 
-## Scope and verified results
+## Business questions
 
-Full-period results from the final Power BI model, independently recalculated from its stored tables:
+- How does purchasing expenditure evolve over time?
+- Which parts, categories and suppliers account for the largest spending shares?
+- How do suppliers compare in delivery reliability and product quality?
+- Which parts show the largest relative differences between supplier quotes?
+- Where do quote-based comparisons suggest potential savings?
+- Which parts have limited supplier coverage?
+- Which purchasing opportunities should receive priority?
+
+## Scope and key results
+
+The following indicators summarize the complete analysis period:
 
 | Indicator | Result |
 |---|---:|
 | Order-date coverage | January 1, 2025 - September 30, 2026 |
 | Purchase orders | 2,500 |
 | Units purchased | 636,430 |
-| Parts / categories / suppliers | 100 / 8 / 10 |
+| Parts | 100 |
+| Categories | 8 |
+| Suppliers | 10 |
 | Supplier quotes | 394 |
 | Total spend | R$133,493,473.90 |
 | Quantity-weighted unit price | R$209.75 |
-| Late delivery rate | 47.40% of orders |
+| Late-delivery rate | 47.40% of orders |
 | Defect rate | 1.81% of purchased units |
 | Parts with two or fewer quoted suppliers | 25 |
 | Parts with relative quote gaps above 30% | 30 |
-| Potential savings scenario | R$36,261,805.79 (27.16% of spend) |
+| Potential savings scenario | R$36,261,805.79 |
+| Potential savings as a share of spend | 27.16% |
 
-Potential savings are a quote-based scenario, not achieved or guaranteed savings. The final measure sums nonnegative savings at part level. Definitions are documented in [Methodology](docs/METHODOLOGY.md).
+Potential savings represent a quote-based analytical scenario rather than realized financial gains. The calculation sums nonnegative savings at part level. Indicator definitions are documented in [Methodology](docs/METHODOLOGY.md).
+
+## Analytical methodology
+
+The project combines structured data preparation, relational analysis, Python calculations and Power BI reporting.
+
+1. **Data organization:** part, supplier, quotation, purchase-order and calendar tables establish the relational structure of the analysis.
+
+2. **Data preparation and validation:** Pandas assigns appropriate numeric and date types. Validation checks assess missing values, duplicate identifiers, key relationships, valid prices and quantities, delivery-date consistency and purchase amount calculations.
+
+3. **SQL analysis:** SQLite queries calculate purchasing totals, monthly spending, category contributions, supplier performance, quote dispersion and supplier coverage.
+
+4. **Indicator development:** Pandas and NumPy calculate part-level savings scenarios, purchasing priority groups and a supplementary weighted supplier score based on cost, punctuality, quality and coverage.
+
+5. **Visualization and interpretation:** charts and analytical summaries connect the calculated indicators to procurement questions. SQL and Pandas totals are compared to verify computational consistency.
+
+6. **Power BI reporting:** DAX measures and four report pages communicate the findings through executive, supplier, part-level and action-planning perspectives.
+
+The notebook documents the purpose of each analytical stage, the calculation methods and the interpretation of the results.
 
 ## Findings and business interpretation
 
-- **Spending concentration:** Fastening accounts for 20.26% of spend. Boreal Supplies is the largest supplier by spend, at 12.98%.
-- **Negotiation opportunity:** Safety has the largest category-level savings scenario, R$8,974,791.39. Industrial Lock 093 leads individual parts at R$5,583,047.48.
-- **Supply exposure:** 25 parts have at most two quoted suppliers. Coverage indicates a screening priority; it does not establish supplier capacity or continuity.
-- **Delivery and quality:** Delta Parts has the highest late-delivery rate, 51.90%. Phoenix Materials has the highest defect rate, approximately 3.20%. Atlas Components combines the lowest delay rate, 39.59%, with a defect rate of approximately 0.82%.
-- **Action segmentation:** 9 parts fall in the high-spend/high-gap quadrant; 21 in low-spend/high-gap; 46 in low-spend/low-gap; and 24 in high-spend/low-gap.
+- **Spending concentration:** Fastening accounts for 20.26% of total spend. Boreal Supplies is the largest supplier by expenditure, representing 12.98%.
 
-## Analytical workflow
+- **Purchasing opportunities:** Safety has the largest category-level potential savings scenario, at R$8,974,791.39. Industrial Lock 093 leads individual parts, at R$5,583,047.48.
 
-1. **Prepared data:** the final PBIX tables establish the authoritative reporting snapshot of the academic dataset.
-2. **Python validation:** identifiers, missing values, joins, dates, quantities, prices and line amounts are checked.
-3. **SQLite analysis:** relational queries summarize spend, supplier performance, quote dispersion and supplier coverage.
-4. **Pandas and NumPy:** part-level savings, decision quadrants and an explicitly weighted supplier score support interpretation.
-5. **Power BI:** DAX measures and four report pages communicate the findings through coordinated views.
+- **Supplier coverage:** 25 parts have two or fewer quoted suppliers, identifying items for further assessment of sourcing alternatives and supply continuity.
 
-The professional notebook retains explanatory context and the purpose of each processing stage. It uses the final prepared inputs rather than regenerating the earlier random dataset. This preserves the supplied report's corrected monetary values.
+- **Delivery reliability:** Delta Parts has the highest late-delivery rate, at 51.90%. Atlas Components has the lowest rate, at 39.59%.
 
-## Report pages
+- **Product quality:** Phoenix Materials has the highest defect rate, approximately 3.20%. Atlas Components combines its comparatively favorable delivery performance with a defect rate of approximately 0.82%.
+
+- **Purchasing priorities:** the combination of spending and relative quote gaps separates parts into four action groups.
+
+### Purchasing priority groups
+
+| Group | Spending profile | Relative quote gap | Parts | Decision focus |
+|---|---|---|---:|---|
+| Q1 — Prioritize | Above mean part spend | Above 30% | 9 | Prioritize negotiation assessment |
+| Q2 — Negotiate | At or below mean part spend | Above 30% | 21 | Target focused negotiation opportunities |
+| Q3 — Maintain | At or below mean part spend | At or below 30% | 46 | Monitor prices and current terms |
+| Q4 — Optimize | Above mean part spend | At or below 30% | 24 | Review volume discounts and contracts |
+
+The spending threshold is the mean expenditure among parts with positive spending in the selected scope. Relative quote gaps are calculated as the difference between the highest and lowest quote divided by the highest quote.
+
+## Power BI report
+
+The report presents four complementary analytical perspectives:
 
 | Page | Analytical purpose | Preview |
 |---|---|---|
-| Executive Overview | Spending trends, categories and suppliers | [View](assets/01_executive_overview.png) |
-| Supplier Performance | Delivery, defects and supplier coverage | [View](assets/02_supplier_performance.png) |
-| Parts Analysis | Spend, quote gaps, savings and dependency | [View](assets/03_parts_analysis.png) |
-| Recommendations and Conclusions | Priority quadrants and action planning | [View](assets/04_recommendations.png) |
+| Executive Overview | Purchasing totals, monthly trends and spending concentration | [View](assets/01_executive_overview.png) |
+| Supplier Performance | Delivery reliability, defect rates and purchased-part coverage | [View](assets/02_supplier_performance.png) |
+| Parts Analysis | Part spending, quote-based opportunities and supplier dependency | [View](assets/03_parts_analysis.png) |
+| Recommendations and Conclusions | Purchasing priority groups and action planning | [View](assets/04_recommendations.png) |
 
 [View the four-page report PDF](powerbi/Parts_and_Suppliers_Report.pdf)
 
-The PDF and images preserve the supplied report. Its delay cards display a decimal ratio (0.47); the table above expresses that measure as a percentage (47.40%). The bar chart on page 2 titled "Total Spend by Supplier" displays distinct part counts, not currency; its interpretation here is supplier coverage. Dynamic interactions require the private PBIX and are not available in the static export.
+The PDF and page previews provide a static view of the report. Interactive filtering requires access to the Power BI report.
+
+**Reading note:** delay ratios displayed as decimals, such as 0.47, correspond to approximately 47%. On the Supplier Performance page, the horizontal bars represent distinct parts purchased from each supplier; the monetary spending figures appear in the supplier table.
 
 ## Repository contents
 
-- [Professional analysis notebook](notebooks/Parts_and_Suppliers_Analysis.ipynb)
-- [SQL analysis](sql/analysis.sql)
-- [Core DAX measures](powerbi/core_measures.dax)
-- [Methodology and indicator definitions](docs/METHODOLOGY.md)
-- [Data dictionary and relationships](docs/DATA_DICTIONARY.md)
-- [Validation and source reconciliation](docs/VALIDATION.md)
-- [Team credits](docs/CREDITS.md)
-- [Data access statement](docs/DATA_ACCESS.md)
+| Resource | Description |
+|---|---|
+| [Analysis notebook](notebooks/Parts_and_Suppliers_Analysis.ipynb) | Python and SQL workflow with analytical explanations and aggregate outputs |
+| [SQL queries](sql/analysis.sql) | Relational queries supporting the procurement analysis |
+| [Core DAX measures](powerbi/core_measures.dax) | Reporting indicators and their measure dependencies |
+| [Methodology](docs/METHODOLOGY.md) | Calculation rules, assumptions and interpretation |
+| [Data dictionary](docs/DATA_DICTIONARY.md) | Table structure, analytical fields and relationships |
+| [Data and indicator validation](docs/VALIDATION.md) | Integrity checks and indicator verification |
+| [Reproducibility](docs/REPRODUCIBILITY.md) | Execution environment and input requirements |
+| [Team credits](docs/CREDITS.md) | Collaborative project attribution |
+| [Data access statement](docs/DATA_ACCESS.md) | Conditions governing access to project inputs |
 
 ## Data source and access
 
-The original notebook describes a reproducibly generated synthetic academic dataset. For this portfolio, the corrected tables stored in the supplied final Power BI model are the reporting source. The original generator produces a different monetary snapshot and is not used to reproduce the final dashboard.
+The project uses synthetic procurement data developed for academic analysis. Five related tables describe parts, suppliers, quotations, purchase orders and calendar dates. These tables support the SQL, Python and Power BI analyses.
 
-Record-level inputs and the editable PBIX are excluded from this public package. Access to the prepared inputs may be considered upon request, subject to the participating team's agreement. The notebook includes executed aggregate outputs for methodological review. Its rerun requires the approved input files and the environment described in [REPRODUCIBILITY.md](docs/REPRODUCIBILITY.md).
+The public portfolio includes analytical code, documentation, aggregate outputs and static report views. Record-level inputs and the editable Power BI file are not publicly distributed.
 
-## Project team and attribution
+Access to the input data may be considered upon request, subject to the project team's agreement. Rerunning the notebook requires the input files and the environment described in [Reproducibility](docs/REPRODUCIBILITY.md).
 
-This portfolio presents a collaborative academic project developed for **TOTI - Class 59, Group 05**. The original presentation credits the following participants, in this order:
+## Interpretation and limitations
+
+The dataset supports the demonstration of analytical methods and does not represent an actual company's procurement operations.
+
+Potential savings compare historical purchasing quantities with the lowest quote available for each part in the September 2026 quote table. This benchmark does not establish that those quotes were available when each historical order was placed.
+
+Purchasing decisions also require consideration of freight, taxes, contractual conditions, supplier capacity, minimum order quantities, qualification requirements and switching costs.
+
+The supplementary supplier score depends on its selected indicators and weights. Its cost component uses average order spend, which is influenced by order size and product mix. The score complements the separate performance indicators.
+
+Action-impact estimates in the report are illustrative, may overlap and should not be added together as independent financial benefits.
+
+## Project team
+
+A collaborative academic project developed for **TOTI · Class 59 · Group 05** by:
 
 - **Jeff-Mathieu Saint-Amour**
 - **Samuel Owens Fumero Fuentes**
 - **Gabriel Enrique Marcano López**
 
-The project is presented here in Jeff-Mathieu Saint-Amour's data analytics portfolio. Team credit applies to the collective academic project; the supplied cover does not document an individual allocation of tasks. This repository therefore makes no exclusive authorship claim over the collective work and assigns no unverified individual roles.
+Presented in the data analytics portfolio of:
 
-**Portfolio profile:** Jeff-Mathieu Saint-Amour · Data Analyst · Civil Engineer · PhD Student in Production Engineering.
+**Jeff-Mathieu Saint-Amour · Data Analyst · Civil Engineer · PhD Student in Production Engineering**
 
-## Original presentation
+## Project presentation
 
-![Original team presentation cover](assets/original_presentation_cover.png)
+![Team presentation cover](assets/original_presentation_cover.png)
 
-The cover is retained as evidence of the original academic context and participant credit. No separate ownership or reuse license is asserted for the artwork appearing in that supplied slide.
+Presentation cover for the TOTI Class 59, Group 05 collaborative project.
 
 ## Skills demonstrated
 
-Relational data modeling; SQL joins and common table expressions; data validation; Python analytical processing; weighted indicators; DAX measures; dashboard narrative; procurement decision support; collaborative attribution.
+- Relational data organization and modeling
+- SQL joins, aggregations and common table expressions
+- Data quality validation with Pandas
+- Numerical analysis with NumPy
+- Procurement and supplier performance indicators
+- Weighted scoring and purchasing prioritization
+- DAX measures and Power BI reporting
+- Analytical visualization and business interpretation
+- Collaborative project documentation
 
-This repository is a portfolio presentation of academic work. No open-source or dataset redistribution license is granted beyond rights held by the relevant contributors.
+## Use of project materials
+
+This repository presents collaborative academic work for portfolio purposes. Redistribution or reuse of project materials remains subject to the rights and permissions of the relevant contributors.
