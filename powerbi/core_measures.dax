@@ -1,0 +1,266 @@
+// Selected source measures and their measure dependencies, transcribed from the final PBIX.
+// Definitions are separate Power BI measures in the existing model.
+// Original names and table/column dependencies are retained.
+
+// Home table: Medida
+Total Spend =
+SUM(fato_compras[valor_total])
+
+// Home table: Medida
+Quantity Purchased =
+SUM(fato_compras[quantidade])
+
+// Home table: Medida
+Total Orders =
+DISTINCTCOUNT(fato_compras[id_pedido])
+
+// Home table: Medida
+Pedidos Atrasados =
+CALCULATE(
+    [Total Orders],
+    fato_compras[dias_atraso] > 0
+)
+
+// Home table: Medida
+Delay Rate =
+DIVIDE(
+    [Pedidos Atrasados],
+    [Total Orders],
+    0
+)
+
+// Home table: Medida
+Unidades Defeituosas =
+SUM(fato_compras[unidades_defeituosas])
+
+// Home table: Medida
+Defect Rate =
+DIVIDE(
+    [Unidades Defeituosas],
+    [Quantity Purchased],
+    0
+)
+
+// Home table: Medida
+Menor Preço Ofertado =
+MIN(fato_ofertas[preco_ofertado])
+
+// Home table: Medida
+Maior Preço Ofertado =
+MAX(fato_ofertas[preco_ofertado])
+
+// Home table: Medida
+Average Price per Part =
+DIVIDE(
+    [Total Spend],
+    [Quantity Purchased]
+)
+
+// Home table: Medida
+Total Parts =
+DISTINCTCOUNT(
+    dim_pecas[codigo_peca]
+)
+
+// Home table: Medida
+Low-Coverage Parts =
+COUNTROWS(
+    FILTER(
+        VALUES(
+            dim_pecas[codigo_peca]
+        ),
+        VAR QuantidadeFornecedores =
+            CALCULATE(
+                DISTINCTCOUNT(
+                    fato_ofertas[codigo_fornecedor]
+                )
+            )
+        RETURN
+            QuantidadeFornecedores <= 2
+                && QuantidadeFornecedores > 0
+    )
+)
+
+// Home table: Medida
+Nº Fornecedores por Peça =
+CALCULATE(
+    DISTINCTCOUNT(
+        fato_ofertas[codigo_fornecedor]
+    )
+)
+
+// Home table: Medida
+High Variance Parts =
+COALESCE(
+    COUNTROWS(
+        FILTER(
+            VALUES(dim_pecas[codigo_peca]),
+            VAR PriceGap =
+                CALCULATE(
+                    [Diferença Relativa entre Ofertas]
+                )
+            RETURN
+                NOT ISBLANK(PriceGap)
+                    && PriceGap > [Priority Price Gap Threshold]
+        )
+    ),
+    0
+)
+
+// Home table: Medida
+Potential Savings =
+SUMX(
+    VALUES(
+        dim_pecas[codigo_peca]
+    ),
+    VAR GastoRealDaPeca =
+        CALCULATE(
+            [Total Spend]
+        )
+    VAR QuantidadeDaPeca =
+        CALCULATE(
+            [Quantity Purchased]
+        )
+    VAR MenorOfertaDaPeca =
+        CALCULATE(
+            MIN(
+                fato_ofertas[preco_ofertado]
+            )
+        )
+    VAR GastoTeoricoDaPeca =
+        QuantidadeDaPeca
+            * MenorOfertaDaPeca
+    VAR EconomiaDaPeca =
+        GastoRealDaPeca
+            - GastoTeoricoDaPeca
+    RETURN
+        IF(
+            NOT ISBLANK(MenorOfertaDaPeca),
+            MAX(
+                0,
+                EconomiaDaPeca
+            )
+        )
+)
+
+// Home table: Medida
+Economia Potencial por Peça =
+VAR GastoReal =
+    [Total Spend]
+
+VAR QuantidadeComprada =
+    [Quantity Purchased]
+
+VAR MenorOferta =
+    [Menor Preço Ofertado]
+
+VAR GastoTeorico =
+    QuantidadeComprada * MenorOferta
+
+RETURN
+    IF(
+        NOT ISBLANK(MenorOferta),
+        MAX(
+            0,
+            GastoReal - GastoTeorico
+        )
+    )
+
+// Home table: Medida
+Diferença Relativa entre Ofertas =
+VAR MenorPreco =
+    [Menor Preço Ofertado]
+
+VAR MaiorPreco =
+    [Maior Preço Ofertado]
+
+VAR Fornecedores =
+    [Nº Fornecedores por Peça]
+
+RETURN
+    IF(
+        Fornecedores >= 2
+            && MaiorPreco > 0,
+        DIVIDE(
+            MaiorPreco - MenorPreco,
+            MaiorPreco
+        )
+    )
+
+// Home table: Top_Acoes
+Impacto Estimado =
+SWITCH(
+    SELECTEDVALUE(Top_Acoes[Ordem]),
+
+    1, [Potential Savings] * 0.53,
+    2, [Potential Savings] * 0.32,
+    3, [Potential Savings] * 0.20,
+
+    4, [Potential Savings] * 0.19,
+    5, [Potential Savings] * 0.15,
+    6, [Potential Savings] * 0.10,
+    7, [Potential Savings] * 0.08,
+
+    8, [Potential Savings] * 0.06,
+    9, [Potential Savings] * 0.04,
+    10,[Potential Savings] * 0.03
+)
+
+// Home table: Priority Quadrants
+Priority Price Gap Threshold =
+0.30
+
+// Home table: Priority Quadrants
+Priority Spend Threshold =
+VAR PartsWithSpend =
+    FILTER(
+        ALLSELECTED(dim_pecas[nome_peca]),
+        NOT ISBLANK(dim_pecas[nome_peca])
+            && CALCULATE([Total Spend]) > 0
+    )
+RETURN
+    AVERAGEX(
+        PartsWithSpend,
+        CALCULATE([Total Spend])
+    )
+
+// Home table: Priority Quadrants
+Priority Card Parts =
+VAR SelectedQuadrant =
+    SELECTEDVALUE('Priority Quadrants'[Quadrant])
+VAR SpendThreshold =
+    [Priority Spend Threshold]
+VAR GapThreshold =
+    [Priority Price Gap Threshold]
+VAR PartsData =
+    ADDCOLUMNS(
+        FILTER(
+            VALUES(dim_pecas[nome_peca]),
+            NOT ISBLANK(dim_pecas[nome_peca])
+        ),
+        "@Spend", CALCULATE([Total Spend]),
+        "@Gap", CALCULATE([Diferença Relativa entre Ofertas])
+    )
+VAR MatchingParts =
+    FILTER(
+        PartsData,
+        VAR SpendValue = [@Spend]
+        VAR GapValue = [@Gap]
+        VAR PartQuadrant =
+            SWITCH(
+                TRUE(),
+                SpendValue > SpendThreshold
+                    && GapValue > GapThreshold, 1,
+                SpendValue <= SpendThreshold
+                    && GapValue > GapThreshold, 2,
+                SpendValue <= SpendThreshold
+                    && GapValue <= GapThreshold, 3,
+                4
+            )
+        RETURN
+            SpendValue > 0
+                && NOT ISBLANK(GapValue)
+                && PartQuadrant = SelectedQuadrant
+    )
+RETURN
+    COALESCE(COUNTROWS(MatchingParts), 0)
